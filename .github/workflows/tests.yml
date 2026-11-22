@@ -3,34 +3,36 @@ name: Tests
 on:
   push:
   pull_request:
-  workflow_dispatch:
+  workflow_dispatch:      # adds a "Run workflow" button on the Actions tab
 
 jobs:
   test:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: false    # finish every combination even if one fails
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python: ["3.9", "3.13"]
-    
-    steps:
-      - uses: actions/checkout@v4
+        # ubuntu-24.04 rather than ubuntu-latest: the newer Ubuntu image only has
+        # recent Python builds, so older versions like 3.9 fail to install there.
+        os: [ubuntu-24.04, windows-latest]
+        python: ["3.9", "3.14"]   # oldest supported and newest
 
-      - uses: actions/setup-python@v5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-      
+
       - name: Install package and test dependencies
         run: python -m pip install -e ".[test]"
-      
-      - name: Run Tests
-        run: python -m pytest -v4
-      
+
+      - name: Run tests
+        run: python -m pytest -v
+
       - name: Check the package builds
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.14'
         run: |
           python -m pip install build
           python -m build
