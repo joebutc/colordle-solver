@@ -3,10 +3,10 @@ requires = ["hatchling >= 1.26"]
 build-backend = "hatchling.build"
 
 [project]
-name = "colordle_solver_joebutc
+name = "colordle_solver_joebutc"
 version = "0.0.1"
 authors = [
-    { name="Joseph Butcher", email="joebutch06@gmail.com"},
+    { name="Joseph Butcher", email="joebutch06@gmail.com" },
 ]
 description = "An algorithm that solves the daily colordle"
 readme = "README.md"
@@ -19,5 +19,5 @@ license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
 [project.urls]
-Homepage = "https://github.com/joebutc/space-game"
-Issues = "https://github.com/joebutc/space-game/issues"
+Homepage = "https://github.com/joebutc/colordle_solver"
+Issues = "https://github.com/joebutc/colordle_solver/issues"
