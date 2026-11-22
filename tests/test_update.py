@@ -39,6 +39,12 @@ def fake_api(monkeypatch):
     return seen
 
 
+def test_tests_use_temp_data_folder(tmp_path):
+    # If this fails, tests/conftest.py is missing and the other tests would
+    # overwrite the real downloaded color lists.
+    assert tmp_path in update.user_list_path().parents
+
+
 def test_clean_keeps_only_valid_name_and_hex():
     assert update.clean(API_RESPONSE) == [
         {"name": "Red", "hex": "#ff0000"},
@@ -106,5 +112,5 @@ def test_install_from_downloaded_file(tmp_path):
 
 def test_file_with_bom_loads(tmp_path):
     f = tmp_path / "bom.json"
-    f.write_bytes(b"\xef\xbb" + b'[{"name": "Red", "hex": "#ff0000"}]')
+    f.write_bytes(b"\xef\xbb\xbf" + b'[{"name": "Red", "hex": "#ff0000"}]')
     assert load_colors(f) == (["Red"], ["#ff0000"])
