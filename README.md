@@ -46,6 +46,19 @@ s.record(g, 63.2)
 print(s.remaining[:10])
 ```
 
+## Benchmark
+
+Play a game against every color in the list and see how the solver does:
+
+```
+colordle --benchmark                  # every color (about 10-40 minutes, depending on CPU)
+colordle --benchmark --sample 1000    # a quick estimate from 1,000 random colors
+colordle --benchmark --workers 4      # limit how many CPU cores it uses
+colordle --benchmark --fresh          # start over instead of resuming
+```
+
+It prints the average and median number of guesses, how many games took each number of guesses, and the worst and best colors. Every result is saved to `benchmark.csv` as it finishes (change with `--out`), so you can open it in a spreadsheet. If you stop a run with Ctrl+C, the same command picks up where it left off. Use `--fresh` after changing the solver, otherwise old results get mixed with new ones.
+
 ## Opening guess
 
 The best first guess is the same every day for a given list, so it is worked out once and cached. The bundled list's opener (Cosmic Void) ships in `data/openers.json`, and `colordle-update` works out the opener for each list it downloads. If you replace the bundled list, run `python scripts/build_openers.py` (about 40 seconds) to regenerate it. A test fails if you forget.

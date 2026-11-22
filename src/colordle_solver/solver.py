@@ -98,6 +98,12 @@ class Solver:
         self.tolerance = tolerance
         self.guess_pool = guess_pool
         self.rng = np.random.default_rng(seed)
+        self.opener = None      # set to an index to skip the cache lookup
+
+    def reset(self, seed=None):
+        """Start a new game with the same color list (much faster than a new Solver)."""
+        self.alive = np.arange(len(self.names))
+        self.rng = np.random.default_rng(seed)
 
     @classmethod
     def from_bundled(cls, **kwargs):
@@ -129,7 +135,8 @@ class Solver:
             return self.opening_guess()             # nothing guessed yet
         half = self.guess_pool // 2
         pool = list(self.rng.choice(self.alive, min(half, len(self.alive)), replace=False))
-        pool += list(self.rng.choice(len(self.names), half, replace=False))
+        pool += list(self.rng.choice(len(self.names), min(half, len(self.names)),
+                                     replace=False))
         return self._best_of(pool)
 
     @property
@@ -147,6 +154,8 @@ class Solver:
         The best first guess is the same every day, so work it out once (with a
         much bigger search than later turns) and cache it.
         """
+        if self.opener is not None:
+            return self.opener
         fp = self.fingerprint
         for path in (opener_cache_path(), BUNDLED_OPENERS):
             name = _read_cache(path).get(fp)

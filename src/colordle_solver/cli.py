@@ -5,6 +5,7 @@ import json
 import numpy as np
 
 from . import __version__
+from .benchmark import play, run as run_benchmark
 from .color import hex_to_rgb, rgb_to_lab, score
 from .solver import Solver, default_list_source, load_colors
 
@@ -47,24 +48,21 @@ def interactive(solver):
 
 def simulate(names, hexes, games, seed, tolerance):
     rng = np.random.default_rng(seed)
+    s = Solver(names, hexes, tolerance=tolerance)
     turns = []
     for _ in range(games):
-        s = Solver(names, hexes, tolerance=tolerance, seed=int(rng.integers(1 << 3)))
         answer = int(rng.integers(len(names)))
-        for t in range(1, 30):
-            g = s.suggest()
-            if g == answer:
-                break
-            s.record(g, round(float(score(s.labs[g], s.labs[[answer]])[0]), 2))
+        t, solved = play(s, answer, seed=int(rng.integers(1 << 31)))
         turns.append(t)
-        print(f"answer={names[answer]!r:40} solved in {t} guesses")
+        note = "" if solved else "  (gave up)"
+        print(f"answer={names[answer]!r:40} solved in {t} guesses{note}")
     print(f"\naverage {np.mean(turns):.2f}, worst {max(turns)}")
 
 
 def calibrate(names, hexes, path):
     """
     Compare predicted scores with a real game. GAME.json looks like:
-      {"answer": "Fairy Tale", "guesses": [["Sky Blue", 41.2, ["Mint", 66.9]]]}
+      {"answer": "Fairy Tale", "guesses": [["Sky Blue", 41.2], ["Mint", 66.9]]}
     """
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
@@ -84,6 +82,16 @@ def main(argv=None):
     p.add_argument("--bundled", action="store_true",
                    help="use the list shipped with the package, ignoring any update")
     p.add_argument("--simulate", type=int, metavar="N", help="play N random games")
+    p.add_argument("--benchmark", action="store_true",
+                   help="play a game for every color and report the result")
+    p.add_argument("--sample", type=int, metavar="N",
+                   help="with --benchmark: only test N random colors")
+    p.add_argument("--workers", type=int, metavar="N",
+                   help="with --benchmark: processes to use (default: all CPU cores)")
+    p.add_argument("--out", default="benchmark.csv", metavar="FILE",
+                   help="with --benchmark: results file (default: benchmark.csv)")
+    p.add_argument("--fresh", action="store_true",
+                   help="with --benchmark: start over instead of resuming")
     p.add_argument("--calibrate", metavar="GAME.json", help="check scores from a real game")
     p.add_argument("--tolerance", type=float, default=0.6)
     p.add_argument("--seed", type=int, default=None)
@@ -95,6 +103,11 @@ def main(argv=None):
     print(f"Using color list: {source}")
     if args.calibrate:
         calibrate(names, hexes, args.calibrate)
+    elif args.benchmark:
+        print()
+        print(run_benchmark(names, hexes, out=args.out, sample=args.sample,
+                            workers=args.workers, tolerance=args.tolerance,
+                            fresh=args.fresh, seed=args.seed or 0))
     elif args.simulate:
         simulate(names, hexes, args.simulate, args.seed, args.tolerance)
     else:
