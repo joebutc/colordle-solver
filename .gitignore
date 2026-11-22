@@ -1,2 +1,30 @@
-src/colordle_solver/data/colors-api.json
-src/colordle_solver/__pycache__/
+# Python bytecode cache (created whenever the code runs)
+__pycache__/
+*.py[cod]
+
+# Build and install output
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test and tool caches
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Colour lists downloaded by hand (the bundled one in src/ is still tracked)
+/colors-api.json
+/colornames.json
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

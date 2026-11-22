@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [
     { name="Joseph Butcher", email="joebutch06@gmail.com" },
 ]
-description = "An algorithm that solves the daily colordle"
+description = "Suggests guesses for the Colordle colour game from your previous scores"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["numpy"]

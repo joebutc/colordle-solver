@@ -92,6 +92,7 @@ def main(argv=None):
 
     source = args.colors or default_list_source(args.bundled)
     names, hexes = load_colors(source)
+    print(f"Using color list: {source}")
     if args.calibrate:
         calibrate(names, hexes, args.calibrate)
     elif args.simulate:

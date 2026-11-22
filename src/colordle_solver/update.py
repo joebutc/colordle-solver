@@ -4,11 +4,17 @@ import json
 import os
 import re
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
+from . import __version__
+
 API_URL = "https://api.color.pizza/v1/"
 REFERRER = "colordle-solver"
+# Python's default "Python-urllib/3.x" is often blocked (HTTP 403) by Cloudflare,
+# so say who we are instead.
+USER_AGENT = f"colordle-solver/{__version__}"
 HEX_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
@@ -28,9 +34,19 @@ def user_list_path():
 
 def fetch_raw(url=API_URL, timeout=60):
     """Download the API response and return it as parsed JSON."""
-    req = urllib.request.Request(url, headers={"X-Referrer": REFERRER})
+    req = urllib.request.Request(url, headers={
+        "X-Referrer": REFERRER,
+        "User-Agent": USER_AGENT,
+        "Accept": "application/json",
+    })
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def read_file(path):
+    """Load a color list you downloaded yourself (API response or plain list)."""
+    with open(path, encoding="utf-8-sig") as f:
+        return json.load(f)
 
 
 def clean(data):
@@ -69,13 +85,30 @@ def main(argv=None):
         description="Download the latest color list from the color-name API.")
     p.add_argument("-o", "--output", help=f"where to save it (default: {user_list_path()})")
     p.add_argument("--url", default=API_URL, help="API address to download from")
+    p.add_argument("--file", metavar="JSON",
+                   help="clean and install a file you downloaded yourself "
+                        "(e.g. with curl) instead of downloading")
     args = p.parse_args(argv)
 
     out = Path(args.output) if args.output else user_list_path()
-    print(f"Downloading from {args.url} ...")
     try:
-        colors = clean(fetch_raw(args.url))
-    except Exception as e:  # network, bad JSON, empty list
+        if args.file:
+            print(f"Reading {args.file} ...")
+            colors = clean(read_file(args.file))
+        else:
+            print(f"Downloading from {args.url} ...")
+            colors = clean(fetch_raw(args.url))
+    except urllib.error.HTTPError as e:
+        print(f"Update failed: the server answered HTTP {e.code} ({e.reason}).",
+              file=sys.stderr)
+        if e.code in (403, 429):
+            print("It may be blocked or rate-limiting this request. Download the "
+                  "list another way, e.g.\n"
+                  f'  curl -H "X-Referrer: {REFERRER}" {args.url} -o colors-api.json\n'
+                  "then run:  colordle-update --file colors-api.json",
+                  file=sys.stderr)
+        return 1
+    except Exception as e:   # network, missing file, bad JSON, empty list
         print(f"Update failed: {e}", file=sys.stderr)
         return 1
     save(colors, out)
