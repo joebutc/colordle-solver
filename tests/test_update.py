@@ -11,9 +11,9 @@ API_RESPONSE = {
     "colors": [
         {"name": "Red", "hex": "#FF0000", "rgb": {"r": 255, "g": 0, "b": 0}},
         {"name": "Café au Lait", "hex": "#a67b5b"},
-        {"name": "red", "hex": "#ff0001"},     # duplicate name, dropped
+        {"name": "red", "hex": "#ff0001"},       # duplicate name, dropped
         {"name": "Broken", "hex": "not-a-hex"},  # malformed, dropped
-        {"hex": "#123456"},                    # no name, dropped
+        {"hex": "#123456"},                      # no name, dropped
     ],
 }
 
