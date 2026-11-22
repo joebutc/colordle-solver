@@ -60,7 +60,7 @@ class Solver:
         keep &= self.alive != guess_idx
         self.alive = self.alive[keep]
     
-    def suggested(self):
+    def suggest(self):
         """Index of the guess expected to leave the fewest candidates."""
         if len(self.alive) == 0:
             raise ValueError("No colors fit the recorded scores.")
