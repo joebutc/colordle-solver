@@ -23,6 +23,7 @@ test = ["pytest"]
 
 [project.scripts]
 colordle = "colordle_solver.cli:main"
+colordle-update = "colordle_solver.update:main"
 
 [tool.hatch.version]
 path = "src/colordle_solver/__init__.py"
