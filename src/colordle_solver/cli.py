@@ -6,7 +6,7 @@ import numpy as np
 
 from . import __version__
 from .color import hex_to_rgb, rgb_to_lab, score
-from .solver import Solver, load_colors
+from .solver import Solver, default_list_source, load_colors
 
 
 def interactive(solver):
@@ -37,6 +37,10 @@ def interactive(solver):
             print(f"Solved: {solver.names[g]}!")
             return
         solver.record(g, val)
+        if len(solver.alive) == 0:
+            print("No colors fit those scores. Check the numbers you typed, or "
+                  "raise --tolerance.")
+            return
         if len(solver.alive) <= 10:
             print("  Still possible:", ", ".join(solver.remaining))
 
@@ -74,7 +78,11 @@ def calibrate(names, hexes, path):
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="colordle", description="Colordle solver")
-    p.add_argument("colors", nargs="?", help="colornames.json (default: bundled list)")
+    p.add_argument("colors", nargs="?",
+                   help="color list file (default: the list from colordle-update "
+                   "if you've run it, otherwise the bundled one")
+    p.add_argument("--bundled", action="store_true",
+                   help="use the list shipped with the package, ignoring any update")
     p.add_argument("--simulate", type=int, metavar="N", help="play N random games")
     p.add_argument("--calibrate", metavar="GAME.json", help="check scores from a real game")
     p.add_argument("--tolerance", type=float, default=0.6)
@@ -82,7 +90,8 @@ def main(argv=None):
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = p.parse_args(argv)
 
-    names, hexes = load_colors(args.colors)
+    source = args.colors or default_list_source(args.bundled)
+    names, hexes = load_colors(source)
     if args.calibrate:
         calibrate(names, hexes, args.calibrate)
     elif args.simulate:

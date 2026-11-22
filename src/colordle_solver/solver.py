@@ -1,20 +1,40 @@
 """Candidate-elimination solver for Colordle."""
 import json
 from importlib.resources import files
+from pathlib import Path
 
 import numpy as np
 
 from .color import hex_to_rgb, rgb_to_lab, score
+from .update import user_list_path
 
 
-def load_colors(path=None):
-    """Return (names, hexes) from a colornames.json file, or the bundled list."""
-    if path is None:
-        text = (files("colordle_solver") / "data" / "colornames.json").read_text("utf-8")
-    else:
-        with open(path, encoding="utf-8") as f:
-            text = f.read()
+def default_list_source(bundled=False):
+    """
+    Which list `load_colors()` uses when no path is given: the one saved by
+    `colordle-update` if it exists, otherwise the copy shipped in the package.
+    """
+    user = user_list_path()
+    if not bundled and user.exists():
+        return user
+    return files("colordle_solver") / "data" / "colornames.json"
+
+
+def load_colors(path=None, bundled=False):
+    """
+    Return (names, hexes) from a color file, or the default list.
+    
+    Accepts either the plain list from the color-name-list package
+    ([{"name": ..., "hex": ...}, ...]) or the API's response
+    ({"colors": [...]}, from https://api.color.pizza/v1/).
+    Set bundled=True to ignore any list downloaded by `colordle-update`.
+    """
+    source = default_list_source(bundled) if path is None else Path(path)
+    with source.open(encoding="utf-8-sig") as f:    # -sig: also accept files with a BOM
+        text = f.read()
     data = json.loads(text)
+    if isinstance(data, dict):
+        data = data["colors"]
     return [c["name"] for c in data], [c["hex"] for c in data]
 
 
