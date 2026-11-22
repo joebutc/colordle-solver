@@ -3,20 +3,29 @@ requires = ["hatchling >= 1.26"]
 build-backend = "hatchling.build"
 
 [project]
-name = "colordle_solver_joebutc"
-version = "0.0.1"
+name = "colordle_solver"
+dynamic = ["version"]
 authors = [
     { name="Joseph Butcher", email="joebutch06@gmail.com" },
 ]
 description = "An algorithm that solves the daily colordle"
 readme = "README.md"
 requires-python = ">=3.9"
+dependencies = ["numpy"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+colordle = "colordle_solver.cli:main"
+
+[tool.hatch.version]
+path = "src/colordle_solver/__init__.py"
 
 [project.urls]
 Homepage = "https://github.com/joebutc/colordle_solver"
