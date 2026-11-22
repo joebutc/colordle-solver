@@ -113,6 +113,11 @@ def main(argv=None):
         return 1
     save(colors, out)
     print(f"Saved {len(colors)} colors to {out}")
+    
+    from .solver import Solver  # imported here to avoid a circular import
+    print("Working out the best opening guess for this list (one-off, about 20 seconds).")
+    s = Solver([c["name"] for c in colors], [c["hex"] for c in colors])
+    print(f"Opening guess: {s.names[s.opening_guess()]}") 
     if args.output:
         print(f"Use it with:  colordle {out}")
     else:

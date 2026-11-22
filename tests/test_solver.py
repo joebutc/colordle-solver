@@ -6,7 +6,9 @@ from colordle_solver import Solver, load_colors, score
 
 @pytest.fixture(scope="module")
 def colors():
-    return load_colors()
+    # Module-scoped fixtures run before the per-test temp-folder redirect in
+    # conftest.py, so always load the bundled list explicitly.
+    return load_colors(bundled=True)
 
 
 def play(names, hexes, answer, seed):

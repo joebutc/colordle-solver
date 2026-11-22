@@ -46,6 +46,10 @@ s.record(g, 63.2)
 print(s.remaining[:10])
 ```
 
+## Opening guess
+
+The best first guess is the same every day for a given list, so it is worked out once and cached. The bundled list's opener (Cosmic Void) ships in `data/openers.json`, and `colordle-update` works out the opener for each list it downloads. If you replace the bundled list, run `python scripts/build_openers.py` (about 40 seconds) to regenerate it. A test fails if you forget.
+
 ## Credits
 
 The color list comes from [meodai/color-names](https://github.com/meodai/color-names) (MIT licence, © 2017 David Aerne). Its licence is in `src/colordle_solver/data/LICENSE-color-names`.
