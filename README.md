@@ -119,7 +119,7 @@ print(s.names[s.suggest()])    # next guess
 ## Development
 
 ```
-git clone https://github.com/joebutc/colordle_solver
+git clone https://github.com/joebutc/colordle-solver
 cd colordle-solver
 pip install -e ".[test]"
 python -m pytest
