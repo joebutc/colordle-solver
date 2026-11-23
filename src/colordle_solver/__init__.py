@@ -1,6 +1,6 @@
 """Colordle solver: narrows down the daily color from your guesses' scores."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .color import ciede2000, rgb_to_lab, score
 from .solver import Solver, load_colors
