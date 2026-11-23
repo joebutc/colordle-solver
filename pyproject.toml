@@ -33,5 +33,5 @@ colordle-update = "colordle_solver.update:main"
 path = "src/colordle_solver/__init__.py"
 
 [project.urls]
-Homepage = "https://github.com/joebutc/colordle_solver"
-Issues = "https://github.com/joebutc/colordle_solver/issues"
+Homepage = "https://github.com/joebutc/colordle-solver"
+Issues = "https://github.com/joebutc/colordle-solver/issues"
