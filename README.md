@@ -1,68 +1,135 @@
 # colordle-solver
 
-Suggests guesses for [Colordle](https://colordle.ryantanen.com/) based on the scores your earlier guesses got.
+[![PyPI](https://img.shields.io/pypi/v/colordle-solver)](https://pypi.org/project/colordle-solver/)
+[![Python](https://img.shields.io/pypi/pyversions/colordle-solver)](https://pypi.org/project/colordle-solver/)
 
-## How it works
-
-Colordle scores a guess as `|100 − ΔE2000|`, where ΔE2000 is the CIEDE2000 color difference. The solver starts with every color in the list. After each guess it drops any color that would not have produced the score you saw, then suggests the guess expected to leave the fewest colors. Most games take 3 to 6 guesses.
+A command-line helper for [Colordle](https://colordle.ryantanen.com/), the daily color-guessing game. Tell it the score each guess got, and it suggests the next guess. It usually finds the answer in about 4 guesses.
 
 ## Install
 
 ```
-pip install .            # or: pip install -e ".[test]" for development
+pip install colordle-solver
 ```
 
-## Use
+Needs Python 3.9 or newer. Works on Windows, macOS, and Linux.
+
+## Quick start
+
+Run `colordle`, play the suggested color in the game, then type the score it gave you:
 
 ```
-colordle                       # play along: type each score the game gives you
-colordle --simulate 20         # test on random answers
-colordle --calibrate game.json # compare predicted scores with a real game
+$ colordle
+Using color list: .../colordle_solver/data/colornames.json
+32004 possible colors.
+After each guess, type the % score the game gave (e.g. 72.4).
+To report your OWN guess instead, type: Color Name = 72.4
+
+Suggested guess: Cosmic Void (#090533)  [32004 left]
+> 44.95
+Suggested guess: Moss (#009051)  [565 left]
+> 29.71
+Suggested guess: ...
 ```
 
-### Gettting the latest color list
+Keep going until the game shows 100%, then type `100`. The first suggestion is always the same, but later ones can vary slightly between runs. If you'd rather play a color of your own choosing, enter it as `Color Name = 72.4` and the solver will still use the result.
 
-The package ships with a copy of the list. To download the newest one from the color-name API:
+## How it works
+
+Colordle scores a guess as `|100 − ΔE2000|`, where ΔE2000 is the CIEDE2000 color difference, a measure of how different two colors look to the eye. The solver starts with every color in the list as a possible answer. After each guess it, it removes every color that couldn't have produced the score you saw. It then picks the guess expected to leave the fewest possibilities.
+
+The best first guess is always the same for a given list, so it's worked out once and saved. For the bundled list it's **Cosmic Void**, a near-black.
+
+## Results
+
+Tested by playing a game against all 32004 colors in the bundled list:
+
+| Guesses | Number of games |
+|--------:|----------------:|
+| 1       | 1 (0.0%)        |
+| 2       | 32 (0.1%)       |
+| 3       | 3,598 (11.2%)   |
+| 4       | 23,242 (72.6%)  |
+| 5       | 4,077 (12.7%)   |
+| 6       | 693 (2.2%)      |
+| 7       | 212 (0.7%)      |
+| 8       | 78 (0.2%)       |
+| 9       | 42 (0.1%)       |
+| 10      | 13 (0.0%)       |
+| 11      | 9 (0.0%)        |
+| 12      | 1 (0.0%)        |
+| 13      | 5 (0.0%)        |
+| 17      | 1 (0.0%)        |
+
+- **Average:** 4.099 guesses (median 4)
+- **Unsolved:** none
+- **Hardest colors:** very bright, saturated ones such as Alien Abduction (#0cff0c, 12 guesses) and Tiger Moth (#f8f2dd, 13 guesses). Many colors in the list sit very close to them, so a single score can't tell them apart. The worst color was Green Screen (#22ff00) with 17 guesses.
+
+Run the benchmark yourself with `colordle --benchmark` (see below).
+
+## Comands
+
+### `colordle`
+
+| Command | What it does |
+|---|---|
+| `colordle` | Play along with today's game |
+| `colordle --simulate 20` | Play 20 games against random answers |
+| `colordle --benchmark` | Play a game against every color and report  the results |
+| `colordle --calibrate game.json` | Compare the solver's predicted scores with a real game |
+| `colordle --bundled` | Use the list shipped with the package, even if you've downloaded a newer one |
+| `colordle mylist.json` | Use a color list from a file |
+| `colordle --tolerance 1.0` | Allow a bigger gap between predicted and real scores (default 0.6) |
+
+### `colordle-update`
+
+Downloads the latest color list from the [color-name API](https://github.com/meodai/color-name-api). `colordle` then uses it automatically.
 
 ```
-colordle-update                  # saves it to your user data folder
-colordle                         # now uses the downloaded list automatically
-colordle --bundled               # go back to the shipped list for one run
-colordle-update -o mylist.json   # or save it somewhere else and pass it in
+colordle-update                          # download and install the latest list
+colordle-update --file colors-api.json   # install a list you downloaded yourself
+colordle-update -o mylist.json           # save it somewhere else instead
 ```
 
-The downloaded lists is saved to `%LOCALAPPDATA%\colordle-solver\colornames.json` on Windows and `~/.local/share/colordle-solver/colornames.json` elsewhere. Delete that file to go back to the bundled list for good. If a download fails, your existing list is left as it was.
+The list is saved to `%LOCALAPPDATA%\colordle-solver\` on Windows and `~/.local/share/colordle-solver/` on macOS and Linux. Delete `colornames.json` there to go back to the bundled list. If a download fails, your existing list is left as it was.
 
-To report a guess you chose yourself, type `Color Name = 72.4`.
+### Benchmark options
 
-From Python:
+```
+colordle --benchmark                  # every color (10-40 minutes, depending on your CPU)
+colordle --benchmark --sample 1000    # quick estimate from 1,000 random colors
+colordle --benchmark --workers 4      # limit how many CPU cores it uses
+colordle --benchmark --fresh          # start over instead of resuming
+```
+
+Each result is saved to `benchmark.csv` as soon as it finishes (change this with `--out`), so you can open it in a spreadsheet. If you stop a run with Ctrl+C, the same command continues where it left off. Use `--fresh` after changing the solver, so old and new results don't get mixed.
+
+## Using it from Python
 
 ```python
 from colordle_solver import Solver
 
 s = Solver.from_bundled()
-g = s.suggest()
-s.record(g, 63.2)
-print(s.remaining[:10])
+guess = s.suggest()
+print(s.names[guess])          # Cosmic Void
+s.record(guess, 44.95)         # the score the game gave
+print(len(s.remaining), "colors left")
+print(s.names[s.suggest()])    # next guess
 ```
 
-## Benchmark
-
-Play a game against every color in the list and see how the solver does:
+## Development
 
 ```
-colordle --benchmark                  # every color (about 10-40 minutes, depending on CPU)
-colordle --benchmark --sample 1000    # a quick estimate from 1,000 random colors
-colordle --benchmark --workers 4      # limit how many CPU cores it uses
-colordle --benchmark --fresh          # start over instead of resuming
+git clone https://github.com/joebutc/colordle_solver
+cd colordle-solver
+pip install -e ".[test]"
+python -m pytest
 ```
 
-It prints the average and median number of guesses, how many games took each number of guesses, and the worst and best colors. Every result is saved to `benchmark.csv` as it finishes (change with `--out`), so you can open it in a spreadsheet. If you stop a run with Ctrl+C, the same command picks up where it left off. Use `--fresh` after changing the solver, otherwise old results get mixed with new ones.
+Tests run automatically on Windows and Linux for every push.
 
-## Opening guess
-
-The best first guess is the same every day for a given list, so it is worked out once and cached. The bundled list's opener (Cosmic Void) ships in `data/openers.json`, and `colordle-update` works out the opener for each list it downloads. If you replace the bundled list, run `python scripts/build_openers.py` (about 40 seconds) to regenerate it. A test fails if you forget.
+- **Changing the bundled list:** if you replace `src/colordle_solver/data/colornames.json`, run `python scripts/build_openers.py` to work out its opening guess (about 40 seconds). A test fails if you forget.
+- **Releasing:** bump `__version__` in `src/colordle_solver/__init__.py`, push, then publish a GitHub release tagged with the same version. The release workflow tests, builds, and uploads it to PyPI.
 
 ## Credits
 
-The color list comes from [meodai/color-names](https://github.com/meodai/color-names) (MIT licence, © 2017 David Aerne). Its licence is in `src/colordle_solver/data/LICENSE-color-names`.
+Color names come from [meodai/color-names](https://github.com/meodai/color-names) (MIT licence, © 2017 David Aerne). Colordle is made by Ryan Tanen; this project isn't affiliated with it.

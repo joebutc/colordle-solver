@@ -1,6 +1,6 @@
 name: Publish to PyPI
 
-# Runs when you publish a release on GitHub (Releases -> Draft a new release).
+# Runs when publishing a release on GitHub.
 # Uses PyPI trusted publishing, so no password or API token is stored anywhere.
 on:
   release:
