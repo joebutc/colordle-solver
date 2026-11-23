@@ -1,6 +1,6 @@
-name: Publish to PyPi
+name: Publish to PyPI
 
-# Runs when publishing a release on GitHub
+# Runs when you publish a release on GitHub (Releases -> Draft a new release).
 # Uses PyPI trusted publishing, so no password or API token is stored anywhere.
 on:
   release:
@@ -16,32 +16,32 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-      
+
       - name: Run tests
         run: |
           python -m pip install -e ".[test]"
           python -m pytest
-      
+
       - name: Check the release tag matches the package version
         run: |
           VERSION=$(python -c "import colordle_solver; print(colordle_solver.__version__)")
           TAG="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" != "$TAG "]; then
+          if [ "$VERSION" != "$TAG" ]; then
             echo "::error::Release tag is $GITHUB_REF_NAME but __version__ is $VERSION. Update __init__.py or retag."
             exit 1
-          f1
-      
-      - name: "Build wheel and source archive"
+          fi
+
+      - name: Build wheel and source archive
         run: |
           python -m pip install build twine
           python -m build
           python -m twine check --strict dist/*
-      
+
       - uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist/
-  
+
   publish:
     name: Upload to PyPI
     needs: build
@@ -56,5 +56,5 @@ jobs:
         with:
           name: dist
           path: dist/
-      
+
       - uses: pypa/gh-action-pypi-publish@release/v1
